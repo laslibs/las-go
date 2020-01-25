@@ -34,6 +34,18 @@ func removeComment(str string) string {
 	return strings.TrimSpace(result.String())
 }
 
+func chunk(s []int, n int) (store [][]int) {
+	for i := 0; i < len(s); {
+		if i+n >= len(s) {
+			store = append(store, s[i:])
+		} else {
+			store = append(store, s[i:i+n])
+		}
+		i += n
+	}
+	return
+}
+
 //Header - returns the header in the las file
 func (l *LasType) Header() ([]string, error) {
 	if len(l.content) < 1 {
@@ -53,14 +65,31 @@ func (l *LasType) Header() ([]string, error) {
 	return headers, nil
 }
 
+// func convertToValue(str string)
+
+// func (l *LasType) Data() {
+// 	// const s = await this.blobString;
+// 	//   const hds = await this.header();
+// 	hds, err := l.Header()
+// 	if err != nil {
+
+// 	}
+// 	sB := regexp.MustCompile("~A(?:\\w*\\s*)*\n").Split(l.content, 2)[1]
+// 	sBs := regexp.MustCompile("\\s+").Split(strings.TrimSpace(sB), -1)
+// 	//   const totalheadersLength = hds.length;
+// 	//   const sB = (s as string)
+// 	//     .split(/~A(?:\w*\s*)*\n/)[1]
+// 	//     .trim()
+// 	//     .split(/\s+/)
+// 	//    // .map(m => Las.convertToValue(m.trim()));
+// 	//   if (sB.length < 0) {
+// 	//     throw new LasError('No data/~A section in the file');
+// 	//   }
+// 	//   const con = Las.chunk(sB, totalheadersLength);
+// 	//   return con;
+// }
+
 func main() {
-	test, err := Las("sample/example1.las")
-	if err != nil {
-		panic(err)
-	}
-	header, hErr := test.Header()
-	if hErr != nil {
-		panic(hErr)
-	}
-	fmt.Println(header)
+	test := []int{1, 2, 3, 4, 5, 6, 7}
+	fmt.Println(chunk(test, 3))
 }
