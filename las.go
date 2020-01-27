@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"regexp"
@@ -34,6 +35,10 @@ func removeComment(str string) []string {
 	return result
 }
 
+func pattern(str string) *regexp.Regexp {
+	return regexp.MustCompile(str)
+}
+
 func chunk(s []string, n int) (store [][]string) {
 	for i := 0; i < len(s); i += n {
 		if i+n >= len(s) {
@@ -51,14 +56,14 @@ func (l *LasType) Header() ([]string, error) {
 	if len(l.content) < 1 {
 		return []string{}, fmt.Errorf(err)
 	}
-	hP := regexp.MustCompile("~C(?:\\w*\\s*)*\n\\s*")
+	hP := pattern("~C(?:\\w*\\s*)*\n\\s*")
 	spl := strings.Split(hP.Split(l.content, 2)[1], "~")[0]
 	headers := removeComment(spl)
 	if len(headers) < 1 {
 		return []string{}, fmt.Errorf(err)
 	}
 	for i, val := range headers {
-		headers[i] = regexp.MustCompile("\\s+[.]").Split(strings.TrimSpace(val), 2)[0]
+		headers[i] = pattern("\\s+[.]").Split(strings.TrimSpace(val), 2)[0]
 	}
 	return headers, nil
 }
@@ -69,8 +74,8 @@ func (l *LasType) Data() [][]string {
 	if err != nil {
 		panic("No data in file")
 	}
-	sB := regexp.MustCompile("~A(?:\\w*\\s*)*\n").Split(l.content, 2)[1]
-	sBs := regexp.MustCompile("\\s+").Split(strings.TrimSpace(sB), -1)
+	sB := pattern("~A(?:\\w*\\s*)*\n").Split(l.content, 2)[1]
+	sBs := pattern("\\s+").Split(strings.TrimSpace(sB), -1)
 	return chunk(sBs, len(hds))
 }
 
@@ -100,13 +105,34 @@ func (l *LasType) RowCount() (count int) {
 	return
 }
 
+// CurveParams - Returns Curve Parameters
+func (l *LasType) CurveParams() map[string]map[string]string {
+	curve, _ := property(l.content, "curve")
+	// TODO: handle error
+	return curve
+}
+
+// WellParams - Returns Overrall Well Parameters
+func (l *LasType) WellParams() map[string]map[string]string {
+	well, _ := property(l.content, "well")
+	// TODO: handle error
+	return well
+}
+
+// LogParams - Returns Log Parameters
+func (l *LasType) LogParams() map[string]map[string]string {
+	param, _ := property(l.content, "param")
+	// TODO: handle error
+	return param
+}
+
 // metadata - picks out version and wrap state of the file
 func metadata(str string) (version string, wrap bool) {
-	sB := strings.Split(regexp.MustCompile("~V(?:\\w*\\s*)*\n\\s*").Split(str, 2)[1], "~")[0]
+	sB := strings.Split(pattern("~V(?:\\w*\\s*)*\n\\s*").Split(str, 2)[1], "~")[0]
 	sw := removeComment(sB)
 	accum := [][]string{}
 	for _, val := range sw {
-		current := regexp.MustCompile("\\s{2,}|\\s*:").Split(val, -1)[0:2]
+		current := pattern("\\s{2,}|\\s*:").Split(val, -1)[0:2]
 		accum = append(accum, current)
 	}
 	version = accum[0][1]
@@ -118,10 +144,60 @@ func metadata(str string) (version string, wrap bool) {
 	return
 }
 
+func property(str string, key string) (property map[string]map[string]string, err error) {
+	err = errors.New("property cannot be found")
+	property = make(map[string]map[string]string)
+
+	regDict := map[string]string{
+		"curve": "~C(?:\\w*\\s*)*\\n\\s*",
+		"param": "~P(?:\\w*\\s*)*\\n\\s*",
+		"well":  "~W(?:\\w*\\s*)*\\n\\s*",
+	}
+	prop, ok := regDict[key]
+	if !ok {
+		return
+	}
+	substr := pattern(prop).Split(str, 2)
+	var sw []string
+	if len(substr) > 1 {
+		sw = removeComment(strings.Split(substr[1], "~")[0])
+	}
+	if len(sw) > 0 {
+		for _, val := range sw {
+			root := pattern("\\s*[.]\\s+").ReplaceAllString(val, "   none   ")
+			title := pattern("[.]|\\s+").Split(root, 2)[0]
+			unit := pattern("\\s+").Split(pattern("^\\w+\\s*[.]*s*").Split(root, 2)[1], 2)[0]
+			desc := strings.TrimSpace(strings.Split(root, ":")[1])
+			desc = pattern("\\d+\\s*").ReplaceAllString(desc, "")
+			if len(desc) < 1 {
+				desc = "none"
+			}
+			vD := pattern("\\s{2,}\\w*\\s{2,}").Split(strings.Split(root, ":")[0], -1)
+			var value string
+			if len(vD) > 2 && len(vD[len(vD)-1]) > 0 {
+				value = strings.TrimSpace(vD[len(vD)-2])
+			} else {
+				value = strings.TrimSpace(vD[len(vD)-1])
+			}
+			property[title] = map[string]string{
+				"unit":        unit,
+				"description": desc,
+				"value":       value,
+			}
+		}
+		return property, nil
+	}
+	return
+}
+
 func main() {
-	las, err := Las("sample/example1.las")
+	las, err := Las("sample/A10.las")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(metadata(las.content))
+	curve, err := property(las.content, "curve")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(curve)
 }
