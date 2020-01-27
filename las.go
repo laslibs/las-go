@@ -170,6 +170,17 @@ func (l *LasType) LogParams() map[string]WellProps {
 	return param
 }
 
+// Other returns extra information stored in ~other section
+func (l *LasType) Other() string {
+	// TODO: make case insensitive
+	som := pattern("~O(?:\\w*\\s*)*\n\\s*").Split(l.content, 2)
+	if len(som) > 1 {
+		res := pattern("\n\\s*").ReplaceAllString(strings.Split(som[1], "~")[0], " ")
+		return strings.Join(removeComment(res), "\n")
+	}
+	return ""
+}
+
 // metadata - picks out version and wrap state of the file
 func metadata(str string) (version string, wrap bool) {
 	sB := strings.Split(pattern("~V(?:\\w*\\s*)*\n\\s*").Split(str, 2)[1], "~")[0]
@@ -231,9 +242,9 @@ func property(str string, key string) (property map[string]WellProps, err error)
 }
 
 func main() {
-	las, err := Las("sample/A10.las")
+	las, err := Las("sample/example1.las")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(las.HeaderAndDesc())
+	fmt.Println(las.Other())
 }
