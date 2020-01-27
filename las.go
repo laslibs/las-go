@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -181,6 +182,23 @@ func (l *LasType) Other() string {
 	return ""
 }
 
+// ToCSV creates a csv file using data and header
+func (l *LasType) ToCSV(filename string) {
+	file, err := os.Create(fmt.Sprintf("%s.csv", filename))
+	if err != nil {
+		panic(err)
+	}
+	// close file when function call ends
+	defer file.Close()
+	header, _ := l.Header()
+	// TODO: handle error
+	file.WriteString(strings.Join(header, ",") + "\n")
+	for _, val := range l.Data() {
+		// TODO: don't include \n at the last line
+		file.WriteString(strings.Join(val, ",") + "\n")
+	}
+}
+
 // metadata - picks out version and wrap state of the file
 func metadata(str string) (version string, wrap bool) {
 	sB := strings.Split(pattern("~V(?:\\w*\\s*)*\n\\s*").Split(str, 2)[1], "~")[0]
@@ -242,9 +260,9 @@ func property(str string, key string) (property map[string]WellProps, err error)
 }
 
 func main() {
-	las, err := Las("sample/example1.las")
+	las, err := Las("sample/A10.las")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(las.Other())
+	las.ToCSV("try")
 }
