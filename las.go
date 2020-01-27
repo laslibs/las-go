@@ -1,4 +1,4 @@
-package main
+package lasgo
 
 import (
 	"errors"
@@ -111,15 +111,16 @@ func (l *LasType) Wrap() (wrap bool) {
 
 // ColumnCount - Returns the number of columns in a .las file
 func (l *LasType) ColumnCount() (count int) {
-	count = len(l.Data())
+	header, _ := l.Header()
+	// TODO: handle error
+	count = len(header)
 	return
+
 }
 
 // RowCount - Returns the number of rowa in a .las file
 func (l *LasType) RowCount() (count int) {
-	header, _ := l.Header()
-	// TODO: handle error
-	count = len(header)
+	count = len(l.Data())
 	return
 }
 
@@ -257,12 +258,4 @@ func property(str string, key string) (property map[string]WellProps, err error)
 		return property, nil
 	}
 	return
-}
-
-func main() {
-	las, err := Las("sample/A10.las")
-	if err != nil {
-		panic(err)
-	}
-	las.ToCSV("try")
 }
