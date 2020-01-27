@@ -136,19 +136,18 @@ func (l *LasType) Column(key string) []string {
 	return res
 }
 
-// func (l *LasType) HeaderAndDesc() {
-// 	// const cur = (await this.property('curve')) as object;
-// 	curve, _ := property(l.content, "curve")
-// 	// TODO: handle error
-// 	//   const hd = Object.keys(cur);
-// 	//   const descr = Object.values(cur).map((c, i) => (c.description === 'none' ? hd[i] : c.description));
-// 	//   const obj: { [key: string]: string } = {};
-// 	//   hd.map((_, i) => (obj[hd[i]] = descr[i]));
-// 	//   if (Object.keys(obj).length < 0) {
-// 	//     throw new LasError('Poorly formatted ~curve section in the file');
-// 	//   }
-// 	//   return obj;
-// }
+// HeaderAndDesc return the name and description of each log entry
+func (l *LasType) HeaderAndDesc() map[string]string {
+	// const cur = (await this.property('curve')) as object;
+	curve, _ := property(l.content, "curve")
+	res := make(map[string]string)
+	// TODO: handle error
+	for key, val := range curve {
+		res[key] = val.description
+	}
+	// TODO: handle when res is empty
+	return res
+}
 
 // CurveParams - Returns Curve Parameters
 func (l *LasType) CurveParams() map[string]WellProps {
@@ -232,9 +231,9 @@ func property(str string, key string) (property map[string]WellProps, err error)
 }
 
 func main() {
-	las, err := Las("sample/example1.las")
+	las, err := Las("sample/A10.las")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(las.CurveParams())
+	fmt.Println(las.HeaderAndDesc())
 }
