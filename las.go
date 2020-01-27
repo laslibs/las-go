@@ -60,6 +60,13 @@ func chunk(s []string, n int) (store [][]string) {
 	return
 }
 
+// WellProps contains basic definition of a single well measurement
+type WellProps struct {
+	unit        string
+	description string
+	value       string
+}
+
 //Header - returns the header in the las file
 func (l *LasType) Header() ([]string, error) {
 	err := "file has no header content, make sure to create an instance of LasType with Las function"
@@ -129,22 +136,36 @@ func (l *LasType) Column(key string) []string {
 	return res
 }
 
+// func (l *LasType) HeaderAndDesc() {
+// 	// const cur = (await this.property('curve')) as object;
+// 	curve, _ := property(l.content, "curve")
+// 	// TODO: handle error
+// 	//   const hd = Object.keys(cur);
+// 	//   const descr = Object.values(cur).map((c, i) => (c.description === 'none' ? hd[i] : c.description));
+// 	//   const obj: { [key: string]: string } = {};
+// 	//   hd.map((_, i) => (obj[hd[i]] = descr[i]));
+// 	//   if (Object.keys(obj).length < 0) {
+// 	//     throw new LasError('Poorly formatted ~curve section in the file');
+// 	//   }
+// 	//   return obj;
+// }
+
 // CurveParams - Returns Curve Parameters
-func (l *LasType) CurveParams() map[string]map[string]string {
+func (l *LasType) CurveParams() map[string]WellProps {
 	curve, _ := property(l.content, "curve")
 	// TODO: handle error
 	return curve
 }
 
 // WellParams - Returns Overrall Well Parameters
-func (l *LasType) WellParams() map[string]map[string]string {
+func (l *LasType) WellParams() map[string]WellProps {
 	well, _ := property(l.content, "well")
 	// TODO: handle error
 	return well
 }
 
 // LogParams - Returns Log Parameters
-func (l *LasType) LogParams() map[string]map[string]string {
+func (l *LasType) LogParams() map[string]WellProps {
 	param, _ := property(l.content, "param")
 	// TODO: handle error
 	return param
@@ -168,9 +189,9 @@ func metadata(str string) (version string, wrap bool) {
 	return
 }
 
-func property(str string, key string) (property map[string]map[string]string, err error) {
+func property(str string, key string) (property map[string]WellProps, err error) {
 	err = errors.New("property cannot be found")
-	property = make(map[string]map[string]string)
+	property = make(map[string]WellProps)
 
 	regDict := map[string]string{
 		"curve": "~C(?:\\w*\\s*)*\\n\\s*",
@@ -203,11 +224,7 @@ func property(str string, key string) (property map[string]map[string]string, er
 			} else {
 				value = strings.TrimSpace(vD[len(vD)-1])
 			}
-			property[title] = map[string]string{
-				"unit":        unit,
-				"description": desc,
-				"value":       value,
-			}
+			property[title] = WellProps{unit, desc, value}
 		}
 		return property, nil
 	}
@@ -219,5 +236,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(las.Column("DEPT"))
+	fmt.Println(las.CurveParams())
 }
