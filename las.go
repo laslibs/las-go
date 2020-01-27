@@ -21,27 +21,26 @@ func Las(path string) (*LasType, error) {
 	return &l, err
 }
 
-func removeComment(str string) string {
+func removeComment(str string) []string {
 	trimmedStr := strings.TrimSpace(str)
 	strVec := strings.Split(trimmedStr, "\n")
-	var result strings.Builder
+	var result []string
 	for _, line := range strVec {
-		strTrimLeft := strings.TrimSpace(line)
-		if !strings.HasPrefix(strTrimLeft, "#") {
-			result.WriteString(fmt.Sprintf("%s\n", strTrimLeft))
+		fStr := strings.TrimSpace(line)
+		if !strings.HasPrefix(fStr, "#") && len(fStr) > 0 {
+			result = append(result, fStr)
 		}
 	}
-	return strings.TrimSpace(result.String())
+	return result
 }
 
-func chunk(s []int, n int) (store [][]int) {
-	for i := 0; i < len(s); {
+func chunk(s []string, n int) (store [][]string) {
+	for i := 0; i < len(s); i += n {
 		if i+n >= len(s) {
 			store = append(store, s[i:])
 		} else {
 			store = append(store, s[i:i+n])
 		}
-		i += n
 	}
 	return
 }
@@ -52,44 +51,56 @@ func (l *LasType) Header() ([]string, error) {
 		return []string{}, fmt.Errorf("file has no header content, make sure to create an instance of LasType with Las function")
 	}
 	hP := regexp.MustCompile("~C(?:\\w*\\s*)*\n\\s*")
-	spl := hP.Split(l.content, 2)[1]
-	hStr := strings.Split(spl, "~")[0]
-	hStr = removeComment(hStr)
-	if len(hStr) < 1 {
+	spl := strings.Split(hP.Split(l.content, 2)[1], "~")[0]
+	headers := removeComment(spl)
+	if len(headers) < 1 {
 		return []string{}, fmt.Errorf("file has no header content, make sure to create an instance of LasType with Las function")
 	}
-	headers := strings.Split(hStr, "\n")
 	for i, val := range headers {
 		headers[i] = regexp.MustCompile("\\s+[.]").Split(strings.TrimSpace(val), 2)[0]
 	}
 	return headers, nil
 }
 
-// func convertToValue(str string)
+// Data returns the data section in the file
+func (l *LasType) Data() [][]string {
+	hds, err := l.Header()
+	if err != nil {
+		panic("No data in file")
+	}
+	sB := regexp.MustCompile("~A(?:\\w*\\s*)*\n").Split(l.content, 2)[1]
+	sBs := regexp.MustCompile("\\s+").Split(strings.TrimSpace(sB), -1)
+	return chunk(sBs, len(hds))
+}
 
-// func (l *LasType) Data() {
-// 	// const s = await this.blobString;
-// 	//   const hds = await this.header();
-// 	hds, err := l.Header()
-// 	if err != nil {
+// func metadata(str string) {
+// 	// const str = await this.blobString;
+// 	// const sB = (str as string)
+// 	// 	.trim()
+// 	// 	.split(/~V(?:\w*\s*)*\n\s*/)[1]
+// 	// 	.split(/~/)[0];
+// 	sB := strings.Split(regexp.MustCompile("~V(?:\\w*\\s*)*\n\\s*").Split(str, 2)[1], "~")[0]
+// 	// const sw = Las.removeComment(sB);
+// 	sw := removeComment(sB)
+// 	// const refined = sw
+// 	// 	.split('\n')
+// 	// 	.map(m => m.split(/\s{2,}|\s*:/).slice(0, 2))
+// 	// 	.filter(f => Boolean(f));
+// 	for _, val := range sw {
 
 // 	}
-// 	sB := regexp.MustCompile("~A(?:\\w*\\s*)*\n").Split(l.content, 2)[1]
-// 	sBs := regexp.MustCompile("\\s+").Split(strings.TrimSpace(sB), -1)
-// 	//   const totalheadersLength = hds.length;
-// 	//   const sB = (s as string)
-// 	//     .split(/~A(?:\w*\s*)*\n/)[1]
-// 	//     .trim()
-// 	//     .split(/\s+/)
-// 	//    // .map(m => Las.convertToValue(m.trim()));
-// 	//   if (sB.length < 0) {
-// 	//     throw new LasError('No data/~A section in the file');
-// 	//   }
-// 	//   const con = Las.chunk(sB, totalheadersLength);
-// 	//   return con;
+// 	// const res = refined.map(r => r[1]);
+// 	// const wrap = res[1].toLowerCase() === 'yes' ? true : false;
+// 	// if ([+res[0], wrap].length < 0) {
+// 	// 	throw new LasError("Couldn't get metadata");
+// 	// }
+// 	// return [+res[0], wrap];
 // }
 
 func main() {
-	test := []int{1, 2, 3, 4, 5, 6, 7}
-	fmt.Println(chunk(test, 3))
+	las, err := Las("sample/example1.las")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(las.Data())
 }
