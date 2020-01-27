@@ -14,6 +14,16 @@ type LasType struct {
 	content string
 }
 
+// index returns the position of an element in a slice of strings
+func index(slice []string, item string) int {
+	for i := range slice {
+		if slice[i] == item {
+			return i
+		}
+	}
+	return -1
+}
+
 //Las creates an instance of LasType
 func Las(path string) (*LasType, error) {
 	bs, err := ioutil.ReadFile(path)
@@ -105,6 +115,20 @@ func (l *LasType) RowCount() (count int) {
 	return
 }
 
+// Column returns entry of an individual log, say gamma ray
+func (l *LasType) Column(key string) []string {
+	header, _ := l.Header()
+	// TODO: handle error
+	data := l.Data()
+	var res []string
+	keyIndex := index(header, key)
+	// TODO: handle when keyIndex is -1
+	for _, val := range data {
+		res = append(res, val[keyIndex])
+	}
+	return res
+}
+
 // CurveParams - Returns Curve Parameters
 func (l *LasType) CurveParams() map[string]map[string]string {
 	curve, _ := property(l.content, "curve")
@@ -191,13 +215,9 @@ func property(str string, key string) (property map[string]map[string]string, er
 }
 
 func main() {
-	las, err := Las("sample/A10.las")
+	las, err := Las("sample/example1.las")
 	if err != nil {
 		panic(err)
 	}
-	curve, err := property(las.content, "curve")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(curve)
+	fmt.Println(las.Column("DEPT"))
 }
