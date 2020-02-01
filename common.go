@@ -272,7 +272,7 @@ func structConvert(ctx context.Context, vals [][]string, header []string, o *Dat
 						return nil, err
 					}
 					row := reflect.ValueOf(rows.Index(i).Interface())
-					retVals := row.MethodByName("lasData.PostUnmarshal").Call([]reflect.Value{reflect.ValueOf(ctx), reflect.ValueOf(i), reflect.ValueOf(count)})
+					retVals := row.MethodByName("PostUnmarshal").Call([]reflect.Value{reflect.ValueOf(ctx), reflect.ValueOf(i), reflect.ValueOf(count)})
 					err := retVals[0].Interface()
 					if err != nil {
 						return nil, xerrors.Errorf("lasData.PostUnmarshal @ row %d: %w", i, err)
