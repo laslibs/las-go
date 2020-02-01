@@ -231,54 +231,55 @@ func structConvert(ctx context.Context, vals [][]string, header []string, o *Dat
 			}
 		}
 
-		if len(outStruct) > 0 {
-			csTyp := reflect.TypeOf(reflect.New(reflect.TypeOf(o.ConcreteStruct)).Interface())
-			ics := reflect.TypeOf((*PostUnmarshaler)(nil)).Elem()
+		outStruct = append(outStruct, res)
+	}
 
-			if csTyp.Implements(ics) {
-				rows := reflect.ValueOf(outStruct)
-				count := rows.Len()
+	// PostUnmarshal code
+	if len(outStruct) > 0 {
+		csTyp := reflect.TypeOf(reflect.New(reflect.TypeOf(o.ConcreteStruct)).Interface())
+		ics := reflect.TypeOf((*PostUnmarshaler)(nil)).Elem()
 
-				if o.ConcurrentPostUnmarshal && runtime.GOMAXPROCS(0) > 1 {
-					g, newCtx := errgroup.WithContext(ctx)
+		if csTyp.Implements(ics) {
+			rows := reflect.ValueOf(outStruct)
+			count := rows.Len()
 
-					for i := 0; i < count; i++ {
-						i := i
-						g.Go(func() error {
-							if err := newCtx.Err(); err != nil {
-								return err
-							}
+			if o.ConcurrentPostUnmarshal && runtime.GOMAXPROCS(0) > 1 {
+				g, newCtx := errgroup.WithContext(ctx)
 
-							row := reflect.ValueOf(rows.Index(i).Interface())
-							retVals := row.MethodByName("PostUnmarshal").Call([]reflect.Value{reflect.ValueOf(newCtx), reflect.ValueOf(i), reflect.ValueOf(count)})
-							err := retVals[0].Interface()
-							if err != nil {
-								return xerrors.Errorf("dbq.PostUnmarshal @ row %d: %w", i, err)
-							}
-							return nil
-						})
-					}
-
-					if err := g.Wait(); err != nil {
-						return nil, err
-					}
-				} else {
-					for i := 0; i < count; i++ {
-						if err := ctx.Err(); err != nil {
-							return nil, err
+				for i := 0; i < count; i++ {
+					i := i
+					g.Go(func() error {
+						if err := newCtx.Err(); err != nil {
+							return err
 						}
+
 						row := reflect.ValueOf(rows.Index(i).Interface())
-						retVals := row.MethodByName("lasData.PostUnmarshal").Call([]reflect.Value{reflect.ValueOf(ctx), reflect.ValueOf(i), reflect.ValueOf(count)})
+						retVals := row.MethodByName("PostUnmarshal").Call([]reflect.Value{reflect.ValueOf(newCtx), reflect.ValueOf(i), reflect.ValueOf(count)})
 						err := retVals[0].Interface()
 						if err != nil {
-							return nil, xerrors.Errorf("lasData.PostUnmarshal @ row %d: %w", i, err)
+							return xerrors.Errorf("lasData.PostUnmarshal @ row %d: %w", i, err)
 						}
+						return nil
+					})
+				}
+
+				if err := g.Wait(); err != nil {
+					return nil, err
+				}
+			} else {
+				for i := 0; i < count; i++ {
+					if err := ctx.Err(); err != nil {
+						return nil, err
+					}
+					row := reflect.ValueOf(rows.Index(i).Interface())
+					retVals := row.MethodByName("lasData.PostUnmarshal").Call([]reflect.Value{reflect.ValueOf(ctx), reflect.ValueOf(i), reflect.ValueOf(count)})
+					err := retVals[0].Interface()
+					if err != nil {
+						return nil, xerrors.Errorf("lasData.PostUnmarshal @ row %d: %w", i, err)
 					}
 				}
 			}
 		}
-
-		outStruct = append(outStruct, res)
 	}
 
 	return outStruct, nil
