@@ -176,12 +176,12 @@ func property(str string, key string) (property map[string]WellProps, err error)
 	return
 }
 
-func structConvert(ctx context.Context, vals [][]string, header []string, o *DataOptions) ([]interface{}, error) {
+func structConvert(ctx context.Context, vals *[][]string, header []string, o *DataOptions) ([]interface{}, error) {
 	var (
 		outStruct = []interface{}{}
 	)
 
-	for _, row := range vals {
+	for _, row := range *vals {
 
 		// map header to row value
 		rowMap := map[string]interface{}{}

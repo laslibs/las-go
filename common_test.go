@@ -57,7 +57,7 @@ func TestStructConvert(t *testing.T) {
 	// opts := &DataOptions{ConcreteStruct: list{}}
 
 	ctx := context.Background()
-	actual, err := structConvert(ctx, chnk, header, opts)
+	actual, err := structConvert(ctx, &chnk, header, opts)
 	if err != nil {
 		t.Errorf("Error encountered: %s\n", err)
 	}

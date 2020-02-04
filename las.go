@@ -61,13 +61,6 @@ func (l *LasType) Data() [][]string {
 // DataStruct just like Data but returns output in specified struct format
 func (l *LasType) DataStruct(opt *DataOptions) []interface{} {
 
-	hds, err := l.Header()
-	if err != nil {
-		panic("No data in file")
-	}
-	sB := pattern("~A(?:\\w*\\s*)*\n").Split(l.content, 2)[1]
-	sBs := pattern("\\s+").Split(strings.TrimSpace(sB), -1)
-
 	var (
 		o     *DataOptions
 		store [][]string
@@ -77,12 +70,17 @@ func (l *LasType) DataStruct(opt *DataOptions) []interface{} {
 		o = opt
 	}
 
-	store = chunk(sBs, len(hds))
+	hds, err := l.Header()
+	if err != nil {
+		panic("No data in file")
+	}
+
+	store = l.Data()
 
 	if o != nil {
 		ctx := context.Background()
 
-		output, err := structConvert(ctx, store, hds, o)
+		output, err := structConvert(ctx, &store, hds, o)
 		if err != nil {
 			panic(err)
 		}
