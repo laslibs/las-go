@@ -1,3 +1,7 @@
+## 0.5.2
+
+* Feat: Add DataStruct method to LasGo that converts data to Struct and returns []interface
+
 ## 0.5.1
 
 * docs: add usage to readme
