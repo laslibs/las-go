@@ -129,7 +129,7 @@
     */
     
   ```
-  Note: This is just a basic example usage of `las.DataStruct()`. please refer to the test to see a more advanced example of how DataStruct can be used.
+  Note: This is just a basic example usage of `las.DataStruct()`. please refer to the test to see a more advanced example of how DataStruct can be used with the added `PostUnmarshaller` feature.
 
 - Get the log headers
 
