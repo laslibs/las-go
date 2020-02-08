@@ -115,6 +115,7 @@ func TestDataStruct(t *testing.T) {
 	opts := &lasgo.DataOptions{ConcreteStruct: dataRow{}}
 
 	actual := las.DataStruct(opts)
+	spew.Dump(actual)
 
 	if !cmp.Equal(expected, actual) {
 		t.Errorf("wrong val: expected: %T %v actual: %T %v\n", expected, expected, actual, actual)
