@@ -51,6 +51,7 @@
 
 - Read data into a Defined Struct
   > Use `Las.DataStruct()` to read your data and have it converted into a defined concrete struct type containing the reading of each log
+  
   ```go
     import (
       "github.com/davecgh/go-spew/spew"
@@ -140,18 +141,18 @@
     )
 
     type list struct {
-		  Index int    `las:"index"`
-      Item  string `las:"item"`
-      DateAdded time.Time `las:"date_added"`
+    	Index int    `las:"index"`
+	Item  string `las:"item"`
+	DateAdded time.Time `las:"date_added"`
     }
 
     opts := &lasgo.DataOptions{
-		  ConcreteStruct: list{},
-		  DecoderConfig: &StructorConfig{
-			  DecodeHook:       mapstructure.StringToTimeHookFunc(time.RFC3339),
-			  WeaklyTypedInput: true,
-		  },
-	  }
+	  ConcreteStruct: list{},
+	  DecoderConfig: &StructorConfig{
+		  DecodeHook:       mapstructure.StringToTimeHookFunc(time.RFC3339),
+		  WeaklyTypedInput: true,
+	  },
+	}
   ```
 
 - Get the log headers
