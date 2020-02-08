@@ -142,8 +142,8 @@
 
     type list struct {
     	Index int    `las:"index"`
-	Item  string `las:"item"`
-	DateAdded time.Time `las:"date_added"`
+		Item  string `las:"item"`
+		DateAdded time.Time `las:"date_added"`
     }
 
     opts := &lasgo.DataOptions{
