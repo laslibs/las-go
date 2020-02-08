@@ -50,9 +50,13 @@ func TestStructConvert(t *testing.T) {
 		&list{Index: int(4), Item: "computers"},
 	}
 
-	opts := &DataOptions{ConcreteStruct: list{}, DecoderConfig: &StructorConfig{
-		DecodeHook:       mapstructure.StringToTimeHookFunc(time.RFC3339),
-		WeaklyTypedInput: true}}
+	opts := &DataOptions{
+		ConcreteStruct: list{},
+		DecoderConfig: &StructorConfig{
+			DecodeHook:       mapstructure.StringToTimeHookFunc(time.RFC3339),
+			WeaklyTypedInput: true,
+		},
+	}
 
 	// opts := &DataOptions{ConcreteStruct: list{}}
 

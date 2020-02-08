@@ -131,6 +131,29 @@
   ```
   Note: This is just a basic example usage of `las.DataStruct()`. please refer to the test to see a more advanced example of how DataStruct can be used.
 
+  If you are try to convert into a data struct that uses `time.Time` type you may encounter an error panic. In such scenario you need to explicitly specify `DecoderConfig` in `Las.DataOptions`. 
+  ```go
+
+    import (
+      "github.com/mitchellh/mapstructure"
+      lasgo "github.com/iykekings/las-go"
+    )
+
+    type list struct {
+		  Index int    `las:"index"`
+      Item  string `las:"item"`
+      DateAdded time.Time `las:"date_added"`
+    }
+
+    opts := &lasgo.DataOptions{
+		  ConcreteStruct: list{},
+		  DecoderConfig: &StructorConfig{
+			  DecodeHook:       mapstructure.StringToTimeHookFunc(time.RFC3339),
+			  WeaklyTypedInput: true,
+		  },
+	  }
+  ```
+
 - Get the log headers
 
 
