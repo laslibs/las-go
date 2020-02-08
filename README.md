@@ -129,7 +129,7 @@
     */
     
   ```
-  Note: This is just a basic example usage of `las.DataStruct()`. please refer to the test to see a more advanced example of how DataStruct can be used.
+  Note: This is just a basic example usage of `las.DataStruct()`. please refer to the test to see a more advanced example of how DataStruct can be used with the added `PostUnmarshaller` feature.
 
   If you are try to convert into a data struct that uses `time.Time` type you may encounter an error panic. In such scenario you need to explicitly specify `DecoderConfig` in `Las.DataOptions`. 
   ```go
