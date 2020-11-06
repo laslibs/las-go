@@ -1,4 +1,4 @@
-module github.com/iykekings/las-go
+module github.com/laslibs/las-go
 
 go 1.13
 
