@@ -24,7 +24,7 @@
 
   ```go
   import (
-    lasgo "github.com/iykekings/las-go"
+    lasgo "github.com/laslibs/las-go"
   )
   ```
 

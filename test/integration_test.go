@@ -7,7 +7,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/go-cmp/cmp"
-	lasgo "github.com/iykekings/las-go"
+	lasgo "github.com/laslibs/las-go"
 )
 
 func TestRowCount(t *testing.T) {
