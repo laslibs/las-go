@@ -49,6 +49,112 @@
      }
   ```
 
+- Read data into a Defined Struct
+  > Use `Las.DataStruct()` to read your data and have it converted into a defined concrete struct type containing the reading of each log
+  
+  ```go
+    import (
+      "github.com/davecgh/go-spew/spew"
+	    lasgo "github.com/iykekings/las-go"
+    )
+
+    // define a datasruct to represent each data row
+    type dataRow struct {
+      Dept float64 `las:"DEPT"`
+      Dt   string  `las:"DT"`
+      Rhob float64 `las:"RHOB"`
+      Nphi string  `las:"NPHI"`
+      Sflu float64 `las:"SFLU"`
+      Sfla float64 `las:"SFLA"`
+      Ilm  string  `las:"ILM"`
+      Ild  float64 `las:"ILD"`
+    }
+
+    func main() {
+      las, err := lasgo.Las("../sample/example1.las")
+	    if err != nil {
+		    panic(err)
+      }
+
+      opts := &lasgo.DataOptions{
+        ConcreteStruct: dataRow{} // pass in datastruct here
+      }
+
+      spew.Dump(las.DataStruct(opts))
+    }
+
+    /**
+      ([]interface {}) (len=4 cap=4) {
+        (*main.dataRow)(0xc000093aa0)({
+          Dept: (float64) 1670,
+          Dt: (string) (len=7) "123.450",
+          Rhob: (float64) 2550,
+          Nphi: (string) (len=5) "0.450",
+          Sflu: (float64) 123.45,
+          Sfla: (float64) 123.45,
+          Ilm: (string) (len=7) "110.200",
+          Ild: (float64) 105.6
+        }),
+        (*main.dataRow)(0xc000093b60)({
+          Dept: (float64) 1669.875,
+          Dt: (string) (len=7) "123.450",
+          Rhob: (float64) 2550,
+          Nphi: (string) (len=5) "0.450",
+          Sflu: (float64) 123.45,
+          Sfla: (float64) 123.45,
+          Ilm: (string) (len=7) "110.200",
+          Ild: (float64) 105.6
+        }),
+        (*main.dataRow)(0xc000093c20)({
+          Dept: (float64) 1669.75,
+          Dt: (string) (len=7) "123.450",
+          Rhob: (float64) 2550,
+          Nphi: (string) (len=5) "0.450",
+          Sflu: (float64) 123.45,
+          Sfla: (float64) 123.45,
+          Ilm: (string) (len=7) "110.200",
+          Ild: (float64) 105.6
+        }),
+        (*main.dataRow)(0xc000093ce0)({
+          Dept: (float64) 1669.745,
+          Dt: (string) (len=7) "123.450",
+          Rhob: (float64) 2550,
+          Nphi: (string) (len=7) "-999.25",
+          Sflu: (float64) 123.45,
+          Sfla: (float64) 123.45,
+          Ilm: (string) (len=7) "110.200",
+          Ild: (float64) 105.6
+        })
+        }
+
+    */
+    
+  ```
+  Note: This is just a basic example usage of `las.DataStruct()`. please refer to the test to see a more advanced example of how DataStruct can be used with the added `PostUnmarshaller` feature.
+
+  If you are try to convert into a data struct that uses `time.Time` type you may encounter an error panic. In such scenario you need to explicitly specify `DecoderConfig` in `Las.DataOptions`. 
+  ```go
+
+    import (
+      "github.com/mitchellh/mapstructure"
+      lasgo "github.com/iykekings/las-go"
+    )
+
+    type list struct {
+    	Index int    `las:"index"`
+		Item  string `las:"item"`
+		DateAdded time.Time `las:"date_added"`
+    }
+
+    opts := &lasgo.DataOptions{
+	  ConcreteStruct: list{},
+	  DecoderConfig: &StructorConfig{
+		  DecodeHook:       mapstructure.StringToTimeHookFunc(time.RFC3339),
+		  WeaklyTypedInput: true,
+	  },
+	}
+  ```
+
 - Get the log headers
 
 
